@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vehicle_platform_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vehicle_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_locally}
+      POSTGRES_DB: ${POSTGRES_DB:-vehicle_platform}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vehicle_admin}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - vehicle_platform_net
+
+  backend:
+    build:
+      context: ./backend
+    container_name: vehicle_platform_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-vehicle_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-vehicle_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_locally}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-REPLACE_WITH_A_LONG_RANDOM_SECRET_REPLACE_WITH_A_LONG_RANDOM_SECRET}
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-60}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      DEMO_MODE: ${DEMO_MODE:-true}
+      NHTSA_API_BASE_URL: ${NHTSA_API_BASE_URL:-https://vpic.nhtsa.dot.gov/api/vehicles}
+      CARQUERY_API_URL: ${CARQUERY_API_URL:-}
+      API_NINJAS_KEY: ${API_NINJAS_KEY:-}
+      MARKETCHECK_API_KEY: ${MARKETCHECK_API_KEY:-}
+      CARSXE_API_KEY: ${CARSXE_API_KEY:-}
+      AUTODEV_API_KEY: ${AUTODEV_API_KEY:-}
+      EDMUNDS_API_KEY: ${EDMUNDS_API_KEY:-}
+      CACHE_TTL_HOURS: ${CACHE_TTL_HOURS:-24}
+    ports:
+      - "8000:8000"
+    networks:
+      - vehicle_platform_net
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: vehicle_platform_web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api}
+    ports:
+      - "5173:5173"
+    networks:
+      - vehicle_platform_net
+
+networks:
+  vehicle_platform_net:
+    driver: bridge
+
+volumes:
+  pgdata:

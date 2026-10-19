@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: vehicle-platform-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/vehicle_platform}
+    username: ${POSTGRES_USER:vehicle_admin}
+    password: ${POSTGRES_PASSWORD:change_me_locally}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+  jackson:
+    default-property-inclusion: non_null
+    property-naming-strategy: SNAKE_CASE
+
+server:
+  port: ${SERVER_PORT:8000}
+  error:
+    include-message: always
+
+app:
+  demo-mode: ${DEMO_MODE:true}
+  cache-ttl-hours: ${CACHE_TTL_HOURS:24}
+  cors-origins: ${CORS_ORIGINS:http://localhost:5173}
+  jwt:
+    secret: ${JWT_SECRET_KEY:REPLACE_WITH_A_LONG_RANDOM_SECRET_REPLACE_WITH_A_LONG_RANDOM_SECRET}
+    expiration-minutes: ${JWT_EXPIRE_MINUTES:60}
+  nhtsa:
+    base-url: ${NHTSA_API_BASE_URL:https://vpic.nhtsa.dot.gov/api/vehicles}
+  providers:
+    carquery-url: ${CARQUERY_API_URL:}
+    api-ninjas-key: ${API_NINJAS_KEY:}
+    marketcheck-key: ${MARKETCHECK_API_KEY:}
+    carsxe-key: ${CARSXE_API_KEY:}
+    autodev-key: ${AUTODEV_API_KEY:}
+    edmunds-key: ${EDMUNDS_API_KEY:}
+
+logging:
+  level:
+    root: INFO
+    com.vehicleplatform: INFO
+    org.hibernate.SQL: WARN
